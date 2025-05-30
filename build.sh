@@ -1,8 +1,13 @@
 #!/bin/bash
+
 function build()
 {
-    docker build . --build-arg NAME="${1}" -t "MusclePr/${1}:latest"
+    docker build . --build-arg NAME="${1}" --build-arg TAG="${2}" -t "MusclePr/${1}:${2}"
 }
 
-build "minecraft-server"
-build "mc-proxy"
+TAGS=(java17 latest)
+
+for TAG in ${TAGS[*]}; do
+  build "minecraft-server" "${TAG}"
+done
+build "mc-proxy" latest
