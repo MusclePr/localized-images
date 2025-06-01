@@ -1,0 +1,86 @@
+name: Manual Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      project:
+        description: 'Project to build'
+        default: 'all'
+        type: choice
+        options: ['all', 'minecraft-server', 'mc-proxy']
+      tag:
+        description: 'Tag to build'
+        default: 'all'
+        type: choice
+        options: ['all', 'latest', 'java17']
+
+env:
+  DST_REGISTRY: ghcr.io
+  DST_USER: musclepr
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - base_image: itzg/minecraft-server
+            project: minecraft-server
+            tag: latest
+          - base_image: itzg/minecraft-server
+            project: minecraft-server
+            tag: java17
+          - base_image: itzg/mc-proxy
+            project: mc-proxy
+            tag: latest
+
+    steps:
+    - name: Filter matrix
+      id: filter
+      run: |
+        PROJECT="${{ github.event.inputs.project }}"
+        TAG="${{ github.event.inputs.tag }}"
+        
+        if [ "$PROJECT" != "all" ] && [ "$PROJECT" != "${{ matrix.project }}" ]; then
+          echo "skip=true" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        
+        if [ "$TAG" != "all" ] && [ "$TAG" != "${{ matrix.tag }}" ]; then
+          echo "skip=true" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        
+        echo "skip=false" >> $GITHUB_OUTPUT
+
+    - uses: actions/checkout@v4
+      if: steps.filter.outputs.skip == 'false'
+
+    - name: Set up Docker Buildx
+      if: steps.filter.outputs.skip == 'false'
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to GHCR
+      if: steps.filter.outputs.skip == 'false'
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.DST_REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build and push
+      if: steps.filter.outputs.skip == 'false'
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        build-args: |
+          BASE_IMAGE=${{ matrix.base_image }}
+          TAG=${{ matrix.tag }}
+        tags: ${{ env.DST_REGISTRY }}/${{ env.DST_USER }}/${{ matrix.project }}:${{ matrix.tag }}
+        labels: |
+          org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          org.opencontainers.image.revision=${{ github.sha }}
