@@ -14,3 +14,4 @@ for TAG in ${TAGS[*]}; do
   build "itzg/minecraft-server" "minecraft-server" "${TAG}"
 done
 build "itzg/mc-proxy" "mc-proxy" "latest"
+build "itzg/mc-backup" "mc-backup" "latest"

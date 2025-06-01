@@ -1,0 +1,24 @@
+# Git files
+.git
+.gitignore
+
+# GitHub Actions
+.github
+
+# Documentation
+README.md
+*.md
+
+# Build scripts
+build.sh
+
+# IDE files
+.vscode
+.idea
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log

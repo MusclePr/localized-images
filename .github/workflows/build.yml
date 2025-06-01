@@ -34,6 +34,12 @@ jobs:
           - base_image: itzg/mc-proxy
             project: mc-proxy
             tag: latest
+          - base_image: itzg/mc-backup
+            project: mc-backup
+            tag: latest
+          - base_image: itzg/mc-backup
+            project: mc-backup
+            tag: latest
 
     steps:
     - uses: actions/checkout@v4
