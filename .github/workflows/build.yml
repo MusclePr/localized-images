@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main, master ]
   schedule:
-    - cron: '0 * * * *'  # 毎時間チェック
+    - cron: '0 0 * * *'  # 毎日チェック
   workflow_dispatch:
     inputs:
       force_build:
