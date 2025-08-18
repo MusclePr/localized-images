@@ -108,4 +108,5 @@ jobs:
         jq --arg key "$IMG_KEY" --arg val "$UP_DIGEST" '.[$key]=$val' digests.json > digests.json.tmp && mv digests.json.tmp digests.json
         git add digests.json
         git commit -m "Update digest for $IMG_KEY"
+        git pull --rebase origin gh-pages
         git push origin gh-pages
