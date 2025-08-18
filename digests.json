@@ -1,3 +1,4 @@
 {
-  "itzg/minecraft-server:latest": "sha256:a472608456ca605ba4ca8da2ce8d5c74d6834fcaf836726e1c9f784b210f1104"
+  "itzg/minecraft-server:latest": "sha256:a472608456ca605ba4ca8da2ce8d5c74d6834fcaf836726e1c9f784b210f1104",
+  "itzg/mc-proxy:latest": "sha256:6484403b4039cd93446642c22f8dfce169e71e44fd353fc022d3cd922b09e154"
 }
