@@ -102,6 +102,7 @@ jobs:
         git config --global user.name "github-actions"
         git clone --branch gh-pages --depth 1 "https://github.com/${{ github.repository }}.git" gh-pages
         cd gh-pages
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
         # Update digests.json
         if [ ! -f digests.json ]; then echo "{}" > digests.json; fi
         jq --arg key "$IMG_KEY" --arg val "$UP_DIGEST" '.[$key]=$val' digests.json > digests.json.tmp && mv digests.json.tmp digests.json
