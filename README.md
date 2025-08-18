@@ -1,36 +1,39 @@
-# Localized Minecraft Images
+# Localized Docker Images
 
-日本語ロケールが設定されたMinecraftサーバー用Dockerイメージです。
+日本語ロケールが設定された Docker イメージを作成します。
+通常、各言語毎のロケールはイメージが膨れるため割愛されます。
+これを、ベースイメージに、`apt-get install -y locales && locale-gen ja_JP.UTF-8` を加える事で対処します。
 
 ## 概要
 
-このリポジトリは、[itzg/docker-minecraft-server](https://github.com/itzg/docker-minecraft-server) をベースに、日本語ロケール（`ja_JP.UTF-8`）を追加したDockerイメージを提供します。
+このリポジトリは、個人的によく使うイメージに日本語ロケールを追加したものを提供します。
+GitHub Workflow を用いて、毎日アップストリームの更新チェックを行い、必要に応じてイメージをビルドします。
 
 ## 利用可能なイメージ
 
 ### Minecraft Server
-- `MusclePr/minecraft-server:latest` - itzg/minecraft-server:latest + 日本語ロケール
-- `MusclePr/minecraft-server:java17` - itzg/minecraft-server:java17 + 日本語ロケール
+- `ghcr.io/musclepr/minecraft-server:latest` - itzg/minecraft-server:latest + 日本語ロケール
+- `ghcr.io/musclepr/minecraft-server:java17` - itzg/minecraft-server:java17 + 日本語ロケール
 
 ### MC Proxy
-- `MusclePr/mc-proxy:latest` - itzg/mc-proxy:latest + 日本語ロケール
+- `ghcr.io/musclepr/mc-proxy:latest` - itzg/mc-proxy:latest + 日本語ロケール
 
 ### MC Backup
-- `MusclePr/mc-backup:latest` - itzg/mc-backup:latest + 日本語ロケール
+- `ghcr.io/musclepr/mc-backup:latest` - itzg/mc-backup:latest + 日本語ロケール
 
 ## 使用方法
 
 ### 基本的な使用例
 
-#### Minecraft Server
-- 使用例については、[itzg/docker-minecraft-server](https://github.com/itzg/docker-minecraft-server) の examples に使用例が多くありますので、それを参照してください。
-- イメージの名前のを `ghcr.io/musclepr/minecraft-server` に入れ替えるだけでOKです。
-
-#### MC Proxy (Bungeecord/Velocity)
-- 使用例については、[itzg/docker-mc-proxy](https://github.com/itzg/docker-mc-proxy) の README に使用例がありますので、それを参照してください。
-
-#### MC Backup
-- 使用例については、[itzg/docker-mc-backup](https://github.com/itzg/docker-mc-backup) の README に使用例がありますので、それを参照してください。
+`compose.yml` の `image` 指定を変更し、タイムゾーンを指定します。
+```yaml
+services:
+  mc:
+    #images: itzg/docker-minecraft-server:latest
+    images: ghcr.io/musclepr/minecraft-server:latest
+    environments:
+      - TZ: Asia/Tokyo
+```
 
 ## 日本語サポートの詳細
 
@@ -42,12 +45,6 @@
   - `LANGUAGE=ja_JP:ja`
   - `LC_ALL=ja_JP.UTF-8`
 
-### 対応する機能
-- 日本語プレイヤー名の適切な表示
-- 日本語チャットメッセージの正常処理
-- 日本語プラグインメッセージのサポート
-- ログファイルでの日本語文字化け防止
-
 ## ローカルビルド
 
 このプロジェクトをローカルでビルドする場合：
@@ -56,41 +53,59 @@
 ```bash
 # 全てのイメージをビルド
 ./build.sh
-
-# 実行可能にする必要がある場合
-chmod +x build.sh
 ```
 
 ### 手動ビルド
 ```bash
 # Minecraft Server (latest)
-docker build -t MusclePr/minecraft-server:latest \
-  --build-arg BASE_IMAGE=itzg/minecraft-server:latest .
+docker build -t ghcr.io/musclepr/minecraft-server:latest \
+  --build-arg IMAGE=itzg/minecraft-server:latest .
 
 # Minecraft Server (Java 17)
-docker build -t MusclePr/minecraft-server:java17 \
-  --build-arg BASE_IMAGE=itzg/minecraft-server:java17 .
+docker build -t ghcr.io/musclepr/minecraft-server:java17 \
+  --build-arg IMAGE=itzg/minecraft-server:java17 .
 
 # MC Proxy
-docker build -t MusclePr/mc-proxy:latest \
-  --build-arg BASE_IMAGE=itzg/mc-proxy:latest .
+docker build -t ghcr.io/musclepr/mc-proxy:latest \
+  --build-arg IMAGE=itzg/mc-proxy:latest .
 
 # MC Backup
-docker build -t MusclePr/mc-backup:latest \
-  --build-arg BASE_IMAGE=itzg/mc-backup:latest .
+docker build -t ghcr.io/musclepr/mc-backup:latest \
+  --build-arg IMAGE=itzg/mc-backup:latest .
 ```
 
 ## 技術的詳細
 
-### Dockerfileの仕組み
-本プロジェクトのDockerfileは、ベースイメージがAlpineベースかUbuntuベースかを自動検出し、適切なロケールパッケージをインストールします：
+### 自動ビルド判定・gh-pages管理
+
+#### ビルド判定の仕組み
+GitHub Actions のワークフローでは、アップストリームイメージのダイジェストを `gh-pages` ブランチの `digests.json` で管理しています。各イメージごとに最新ダイジェストを記録し、差分がなければ自動的にビルドをスキップします。
+
+ビルド後は `digests.json` を自動更新し、`gh-pages` ブランチへ push されます。これにより、不要なビルドを防ぎつつ、アップストリームの更新にのみ反応します。
+
+#### 仕組みの概要
+- `gh-pages` の `digests.json` に全イメージのダイジェストをキーごとに管理
+- ワークフローの最初で `digests.json` を取得し、対象イメージのダイジェストを比較
+- 差分があればビルド・push後に `digests.json` を更新し `gh-pages` に反映
+
+#### 参考: digests.json の例
+```json
+{
+  "itzg/minecraft-server:latest": "sha256:xxxx...",
+  "itzg/mc-proxy:latest": "sha256:yyyy...",
+  "itzg/mc-backup:latest": "sha256:zzzz..."
+}
+```
+
+### Dockerfile の仕組み
+本プロジェクトの Dockerfile は、ベースイメージが Alpine ベースか Ubuntu ベースかを自動検出し、適切なロケールパッケージをインストールします：
 
 - **Alpine系**: `musl-locales` と `musl-locales-lang` パッケージ
 - **Ubuntu/Debian系**: `locales` パッケージと `locale-gen` コマンド
 
 ### 対応ベースイメージ
-- Alpine Linux ベース（mc-backupなど）
-- Ubuntu/Debian ベース（minecraft-server、mc-proxyなど）
+- Alpine Linux ベース（mc-backup など）
+- Ubuntu/Debian ベース（minecraft-server、mc-proxy など）
 
 ## プロジェクト情報
 
@@ -153,4 +168,4 @@ localized-images/
 
 ## ライセンス
 
-このプロジェクトは元のitzgプロジェクトと同じライセンスに従います。
+このプロジェクトは元の itzg プロジェクトと同じライセンスに従います。

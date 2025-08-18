@@ -41,29 +41,28 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Check if build needed
+    - name: Check if build needed (gh-pages digests)
       id: check
       run: |
         SRC_IMG="${{ matrix.base_image }}:${{ matrix.tag }}"
-        DST_IMG="${{ env.DST_REGISTRY }}/${{ env.DST_USER }}/${{ matrix.project }}:${{ matrix.tag }}"
-        
+        IMG_KEY="${{ matrix.base_image }}:${{ matrix.tag }}"
+        DIGESTS_URL="https://musclepr.github.io/localized-images/digests.json"
         # Force build or push event
         if [ "${{ github.event.inputs.force_build }}" = "true" ] || [ "${{ github.event_name }}" = "push" ]; then
           echo "needs_build=true" >> $GITHUB_OUTPUT
           echo "Reason: Force build or push event"
           exit 0
         fi
-        
-        # Check upstream digest
+        # Get previous digest from gh-pages
+        PREV_DIGEST=$(curl -s "$DIGESTS_URL" | jq -r --arg key "$IMG_KEY" '.[$key] // empty')
+        # Get upstream digest
         UP_DIGEST=$(docker manifest inspect $SRC_IMG 2>/dev/null | jq -r '.manifests[0].digest // .digest' || echo "")
-        CUR_DIGEST=$(docker manifest inspect $DST_IMG 2>/dev/null | jq -r '.manifests[0].digest // .digest' || echo "")
-        
-        if [ "$UP_DIGEST" != "$CUR_DIGEST" ] || [ -z "$CUR_DIGEST" ]; then
-          echo "needs_build=true" >> $GITHUB_OUTPUT
-          echo "Build needed: upstream=$UP_DIGEST current=$CUR_DIGEST"
-        else
+        if [ "$PREV_DIGEST" = "$UP_DIGEST" ] && [ -n "$PREV_DIGEST" ]; then
           echo "needs_build=false" >> $GITHUB_OUTPUT
-          echo "No build needed"
+          echo "No upstream change. Skipping build."
+        else
+          echo "needs_build=true" >> $GITHUB_OUTPUT
+          echo "Build needed: upstream=$UP_DIGEST prev=$PREV_DIGEST"
         fi
 
     - name: Set up Docker Buildx
@@ -91,3 +90,21 @@ jobs:
         labels: |
           org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
           org.opencontainers.image.revision=${{ github.sha }}
+
+    - name: Update digests.json on gh-pages
+      if: steps.check.outputs.needs_build == 'true'
+      run: |
+        SRC_IMG="${{ matrix.base_image }}:${{ matrix.tag }}"
+        IMG_KEY="${{ matrix.base_image }}:${{ matrix.tag }}"
+        UP_DIGEST=$(docker manifest inspect $SRC_IMG 2>/dev/null | jq -r '.manifests[0].digest // .digest' || echo "")
+        # Clone gh-pages branch
+        git config --global user.email "github-actions@github.com"
+        git config --global user.name "github-actions"
+        git clone --branch gh-pages --depth 1 "https://github.com/${{ github.repository }}.git" gh-pages
+        cd gh-pages
+        # Update digests.json
+        if [ ! -f digests.json ]; then echo "{}" > digests.json; fi
+        jq --arg key "$IMG_KEY" --arg val "$UP_DIGEST" '.[$key]=$val' digests.json > digests.json.tmp && mv digests.json.tmp digests.json
+        git add digests.json
+        git commit -m "Update digest for $IMG_KEY"
+        git push origin gh-pages

@@ -1,7 +1,6 @@
 # Ubuntu
-ARG BASE_IMAGE="itzg/minecraft-server"
-ARG TAG="latest"
-FROM ${BASE_IMAGE}:${TAG}
+ARG IMAGE="itzg/minecraft-server:latest"
+FROM ${IMAGE}
 LABEL maintainer="MusclePr"
 ARG LANG="ja_JP.UTF-8"
 ARG LANGUAGE="ja_JP:ja"
