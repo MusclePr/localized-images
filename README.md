@@ -1,12 +1,12 @@
 # Localized Docker Images
 
-日本語ロケールが設定された Docker イメージを作成します。
-通常、各言語毎のロケールはイメージが膨れるため割愛されます。
+日本語ロケールが設定された Docker イメージを作成します。<br>
+通常、各言語毎のロケールはイメージが膨れるため割愛されます。<br>
 これを、ベースイメージに、`apt-get install -y locales && locale-gen ja_JP.UTF-8` を加える事で対処します。
 
 ## 概要
 
-このリポジトリは、個人的によく使うイメージに日本語ロケールを追加したものを提供します。
+このリポジトリは、個人的によく使うイメージに日本語ロケールを追加したものを提供します。<br>
 GitHub Workflow を用いて、毎日アップストリームの更新チェックを行い、必要に応じてイメージをビルドします。
 
 ## 利用可能なイメージ
@@ -31,8 +31,8 @@ services:
   mc:
     #images: itzg/docker-minecraft-server:latest
     images: ghcr.io/musclepr/minecraft-server:latest
-    environments:
-      - TZ: Asia/Tokyo
+    environment:
+      TZ: "Asia/Tokyo"
 ```
 
 ## 日本語サポートの詳細
@@ -79,9 +79,11 @@ docker build -t ghcr.io/musclepr/mc-backup:latest \
 ### 自動ビルド判定・gh-pages管理
 
 #### ビルド判定の仕組み
-GitHub Actions のワークフローでは、アップストリームイメージのダイジェストを `gh-pages` ブランチの `digests.json` で管理しています。各イメージごとに最新ダイジェストを記録し、差分がなければ自動的にビルドをスキップします。
+GitHub Actions のワークフローでは、アップストリームイメージのダイジェストを `gh-pages` ブランチの `digests.json` で管理しています。<br>
+各イメージごとに最新ダイジェストを記録し、差分がなければ自動的にビルドをスキップします。
 
-ビルド後は `digests.json` を自動更新し、`gh-pages` ブランチへ push されます。これにより、不要なビルドを防ぎつつ、アップストリームの更新にのみ反応します。
+ビルド後は `digests.json` を自動更新し、`gh-pages` ブランチへ push されます。<br>
+これにより、不要なビルドを防ぎつつ、アップストリームの更新にのみ反応します。
 
 #### 仕組みの概要
 - `gh-pages` の `digests.json` に全イメージのダイジェストをキーごとに管理
@@ -110,14 +112,14 @@ GitHub Actions のワークフローでは、アップストリームイメー�
 ## プロジェクト情報
 
 ### ベースイメージ
-- [itzg/minecraft-server](https://hub.docker.com/r/itzg/minecraft-server) - 元のMinecraftサーバーイメージ
-- [itzg/mc-proxy](https://hub.docker.com/r/itzg/mc-proxy) - Bungeecord/Velocityプロキシ
+- [itzg/minecraft-server](https://hub.docker.com/r/itzg/minecraft-server) - 元の Minecraft サーバーイメージ
+- [itzg/mc-proxy](https://hub.docker.com/r/itzg/mc-proxy) - Bungeecord/Velocity プロキシ
 - [itzg/mc-backup](https://hub.docker.com/r/itzg/mc-backup) - バックアップツール
 
 ### 追加された機能
 - **日本語ロケールサポート**: `ja_JP.UTF-8` の完全サポート
-- **クロスプラットフォーム対応**: Alpine/Ubuntu両方のベースイメージに対応
-- **自動検出**: ベースイメージのOSを自動検出してパッケージ管理
+- **クロスプラットフォーム対応**: Alpine/Ubuntu 両方のベースイメージに対応
+- **自動検出**: ベースイメージの OS を自動検出してパッケージ管理
 
 ### 技術仕様
 - **環境変数**:
@@ -148,16 +150,22 @@ docker exec -it <container_name> locale -a | grep ja_JP
 
 ```
 localized-images/
-├── Dockerfile          # ユニバーサルDockerfile（Alpine/Ubuntu対応）
+├── Dockerfile           # ユニバーサル Dockerfile（Alpine/Ubuntu対応）
 ├── build.sh             # 自動ビルドスクリプト
-├── .dockerignore        # Docker除外ファイル
-└── README.md           # このファイル
+├── .dockerignore        # Docker 除外ファイル
+├── .gitignore           # Git 除外ファイル
+├── README.md            # このファイル
+└── .github/
+  └── workflows/
+    └── build.yml   # GitHub Actions ワークフロー
 ```
 
 ### ファイル説明
 - **Dockerfile**: ベースイメージの種類を自動検出し、適切なロケールパッケージをインストール
 - **build.sh**: 4つのイメージを一括でビルドする自動化スクリプト
 - **.dockerignore**: ビルド時に不要なファイルを除外
+- **.gitignore**: Git管理対象外ファイルの指定
+- **.github/workflows/build.yml**: 自動ビルド・更新ワークフロー
 
 ## 関連リンク
 
