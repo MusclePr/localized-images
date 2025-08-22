@@ -12,4 +12,4 @@ build "itzg/minecraft-server:latest"
 build "itzg/minecraft-server:java17"
 build "itzg/mc-proxy:latest"
 build "itzg/mc-backup:latest"
-build "hermsi/ark-server:latest"
+#build "hermsi/ark-server:latest" ... TZを変更するだけで、GameUserSettings.ini が起動中に文字化けしたので、使用しない

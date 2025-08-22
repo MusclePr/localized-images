@@ -29,7 +29,6 @@ jobs:
           - image: itzg/minecraft-server:java17
           - image: itzg/mc-proxy:latest
           - image: itzg/mc-backup:latest
-          - image: hermsi/ark-server:latest
 
     steps:
     - uses: actions/checkout@v4
