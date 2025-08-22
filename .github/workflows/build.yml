@@ -25,18 +25,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - base_image: itzg/minecraft-server
-            project: minecraft-server
-            tag: latest
-          - base_image: itzg/minecraft-server
-            project: minecraft-server
-            tag: java17
-          - base_image: itzg/mc-proxy
-            project: mc-proxy
-            tag: latest
-          - base_image: itzg/mc-backup
-            project: mc-backup
-            tag: latest
+          - image: itzg/minecraft-server:latest
+          - image: itzg/minecraft-server:java17
+          - image: itzg/mc-proxy:latest
+          - image: itzg/mc-backup:latest
+          - image: hermsi/ark-server:latest
 
     steps:
     - uses: actions/checkout@v4
@@ -44,8 +37,8 @@ jobs:
     - name: Check if build needed (gh-pages digests)
       id: check
       run: |
-        SRC_IMG="${{ matrix.base_image }}:${{ matrix.tag }}"
-        IMG_KEY="${{ matrix.base_image }}:${{ matrix.tag }}"
+        SRC_IMG="${{ matrix.image }}"
+        IMG_KEY="${{ matrix.image }}"
         DIGESTS_URL="https://musclepr.github.io/localized-images/digests.json"
         # Force build or push event
         if [ "${{ github.event.inputs.force_build }}" = "true" ] || [ "${{ github.event_name }}" = "push" ]; then
@@ -77,6 +70,12 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Set output image name
+      if: steps.check.outputs.needs_build == 'true'
+      run: |
+        NEW_IMAGE="${{ env.DST_REGISTRY }}/${{ env.DST_USER }}/$(basename ${{ matrix.image }})"
+        echo "NEW_IMAGE=${NEW_IMAGE}" >> $GITHUB_ENV
+
     - name: Build and push
       if: steps.check.outputs.needs_build == 'true'
       uses: docker/build-push-action@v5
@@ -84,9 +83,8 @@ jobs:
         context: .
         push: true
         build-args: |
-          BASE_IMAGE=${{ matrix.base_image }}
-          TAG=${{ matrix.tag }}
-        tags: ${{ env.DST_REGISTRY }}/${{ env.DST_USER }}/${{ matrix.project }}:${{ matrix.tag }}
+          IMAGE=${{ matrix.image }}
+        tags: ${{ env.NEW_IMAGE }}
         labels: |
           org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
           org.opencontainers.image.revision=${{ github.sha }}
@@ -94,8 +92,8 @@ jobs:
     - name: Update digests.json on gh-pages
       if: steps.check.outputs.needs_build == 'true'
       run: |
-        SRC_IMG="${{ matrix.base_image }}:${{ matrix.tag }}"
-        IMG_KEY="${{ matrix.base_image }}:${{ matrix.tag }}"
+        SRC_IMG="${{ matrix.image }}"
+        IMG_KEY="${{ matrix.image }}"
         UP_DIGEST=$(docker manifest inspect $SRC_IMG 2>/dev/null | jq -r '.manifests[0].digest // .digest' || echo "")
         # Clone gh-pages branch
         git config --global user.email "github-actions@github.com"
