@@ -1,8 +1,12 @@
 name: Build Localized Images
 
+concurrency:
+  group: gh-pages-update-${{ github.repository }}
+  cancel-in-progress: false
+
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
   schedule:
     - cron: '0 0 * * *'  # 毎日チェック
   workflow_dispatch:
@@ -25,10 +29,14 @@ jobs:
     strategy:
       matrix:
         include:
-          - image: itzg/minecraft-server:latest
-          - image: itzg/minecraft-server:java17
-          - image: itzg/mc-proxy:latest
-          - image: itzg/mc-backup:latest
+          - name: minecraft-server:latest
+            src: itzg
+          - name: minecraft-server:java17
+            src: itzg
+          - name: mc-proxy:latest
+            src: itzg
+          - name: mc-backup:latest
+            src: itzg
 
     steps:
     - uses: actions/checkout@v4
@@ -36,8 +44,7 @@ jobs:
     - name: Check if build needed (gh-pages digests)
       id: check
       run: |
-        SRC_IMG="${{ matrix.image }}"
-        IMG_KEY="${{ matrix.image }}"
+        SRC_IMG="${{ matrix.src }}/${{ matrix.name }}"
         DIGESTS_URL="https://musclepr.github.io/localized-images/digests.json"
         # Force build or push event
         if [ "${{ github.event.inputs.force_build }}" = "true" ] || [ "${{ github.event_name }}" = "push" ]; then
@@ -46,15 +53,15 @@ jobs:
           exit 0
         fi
         # Get previous digest from gh-pages
-        PREV_DIGEST=$(curl -s "$DIGESTS_URL" | jq -r --arg key "$IMG_KEY" '.[$key] // empty')
+        PREV_DIGEST=$(curl -s "$DIGESTS_URL" | jq -r --arg key "$SRC_IMG" '.[$key] // empty')
         # Get upstream digest
         UP_DIGEST=$(docker manifest inspect $SRC_IMG 2>/dev/null | jq -r '.manifests[0].digest // .digest' || echo "")
         if [ "$PREV_DIGEST" = "$UP_DIGEST" ] && [ -n "$PREV_DIGEST" ]; then
           echo "needs_build=false" >> $GITHUB_OUTPUT
-          echo "No upstream change. Skipping build."
+          echo "上流に変更なし。ビルド不要。"
         else
           echo "needs_build=true" >> $GITHUB_OUTPUT
-          echo "Build needed: upstream=$UP_DIGEST prev=$PREV_DIGEST"
+          echo "上流に変更あり。ビルド必要。"
         fi
 
     - name: Set up Docker Buildx
@@ -69,12 +76,6 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Set output image name
-      if: steps.check.outputs.needs_build == 'true'
-      run: |
-        NEW_IMAGE="${{ env.DST_REGISTRY }}/${{ env.DST_USER }}/$(basename ${{ matrix.image }})"
-        echo "NEW_IMAGE=${NEW_IMAGE}" >> $GITHUB_ENV
-
     - name: Build and push
       if: steps.check.outputs.needs_build == 'true'
       uses: docker/build-push-action@v5
@@ -82,8 +83,8 @@ jobs:
         context: .
         push: true
         build-args: |
-          IMAGE=${{ matrix.image }}
-        tags: ${{ env.NEW_IMAGE }}
+          IMAGE=${{ matrix.src }}/${{ matrix.name }}
+        tags: ${{ env.DST_REGISTRY }}/${{ env.DST_USER }}/${{ matrix.name }}
         labels: |
           org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
           org.opencontainers.image.revision=${{ github.sha }}
@@ -91,8 +92,7 @@ jobs:
     - name: Update digests.json on gh-pages
       if: steps.check.outputs.needs_build == 'true'
       run: |
-        SRC_IMG="${{ matrix.image }}"
-        IMG_KEY="${{ matrix.image }}"
+        SRC_IMG="${{ matrix.src }}/${{ matrix.name }}"
         UP_DIGEST=$(docker manifest inspect $SRC_IMG 2>/dev/null | jq -r '.manifests[0].digest // .digest' || echo "")
         # Clone gh-pages branch
         git config --global user.email "github-actions@github.com"
@@ -102,12 +102,12 @@ jobs:
         git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
         # Update digests.json
         if [ ! -f digests.json ]; then echo "{}" > digests.json; fi
-        jq --arg key "$IMG_KEY" --arg val "$UP_DIGEST" '.[$key]=$val' digests.json > digests.json.tmp && mv digests.json.tmp digests.json
+        jq --arg key "$SRC_IMG" --arg val "$UP_DIGEST" '.[$key]=$val' digests.json > digests.json.tmp && mv digests.json.tmp digests.json
         git add digests.json
         if git diff --cached --quiet; then
           echo "No changes to commit."
         else
-          git commit -m "Update digest for $IMG_KEY"
+          git commit -m "ダイジェスト更新：$SRC_IMG"
           git pull --rebase origin gh-pages
           git push origin gh-pages
         fi
