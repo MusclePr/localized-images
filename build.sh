@@ -9,6 +9,7 @@ function build()
 }
 
 build "itzg/minecraft-server:latest"
+build "itzg/minecraft-server:java25"
 build "itzg/minecraft-server:java17"
 build "itzg/mc-proxy:latest"
 build "itzg/mc-backup:latest"

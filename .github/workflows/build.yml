@@ -32,6 +32,9 @@ jobs:
           - name: minecraft-server:latest
             src: itzg
             artifact: minecraft-server-latest
+          - name: minecraft-server:java25
+            src: itzg
+            artifact: minecraft-server-java25
           - name: minecraft-server:java17
             src: itzg
             artifact: minecraft-server-java17
