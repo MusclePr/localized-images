@@ -1,6 +1,6 @@
 {
   "itzg/minecraft-server:latest": "sha256:52682d859c8cceb45345fb0757bf367675c8e64a2b138fc4a34e7299eb81643b",
-  "itzg/mc-proxy:latest": "sha256:c6032b3451de9660807f50942585ac002acb983615c8ba88922df0f0df14c39e",
+  "itzg/mc-proxy:latest": "sha256:76b7af9774c804140f9269733466aa142f162cd8f3ba540d496bce7def3da1c7",
   "itzg/mc-backup:latest": "sha256:b8c74fe84f6f5caab366a8253466242e1207b09c3e842f47917f645d618a2c4d",
   "itzg/minecraft-server:java17": "sha256:cff59cdff7ebc4686ed75b2737fae90c00d776b091ec5c33b6f2f81470f6b681",
   "hermsi/ark-server:latest": "null",
