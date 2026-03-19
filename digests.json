@@ -4,5 +4,5 @@
   "itzg/mc-backup:latest": "sha256:ff3d26e818babff3863ac0bd736e93ff71019ef54ce4c75f45bdfdb90b01903a",
   "itzg/minecraft-server:java17": "sha256:5e44e1fea8a3858a2c3b7572b4616cca6d5290ce729952f15060b1450be8578d",
   "hermsi/ark-server:latest": "null",
-  "itzg/minecraft-server:java25": "sha256:aaf0c42511ff8bf8c5362bfc40954b975be51921e499cb208bd5b13d1fbf4d47"
+  "itzg/minecraft-server:java25": "sha256:9bdb7467cbdcb897d37b23be4eb51277b6f76206075ed5f0c7be4d22caa29ccb"
 }
