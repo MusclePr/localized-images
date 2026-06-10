@@ -8,9 +8,19 @@ function build()
   docker build . --build-arg IMAGE="${IMAGE}" -t "ghcr.io/musclepr/${PROJECT}"
 }
 
-build "itzg/minecraft-server:latest"
-build "itzg/minecraft-server:java25"
-build "itzg/minecraft-server:java17"
-build "itzg/mc-proxy:latest"
-build "itzg/mc-backup:latest"
-#build "hermsi/ark-server:latest" ... TZを変更するだけで、GameUserSettings.ini が起動中に文字化けしたので、使用しない
+if [ "$1" = "all" ]; then
+  IMAGES=(
+    "itzg/minecraft-server:latest"
+    # "itzg/minecraft-server:java25" # ... Java 25 は、latest と同じなので、使用しない
+    "itzg/minecraft-server:java21"
+    "itzg/minecraft-server:java17"
+    "itzg/mc-proxy:latest"
+    "itzg/mc-backup:latest"
+    # "hermsi/ark-server:latest" # ... TZを変更するだけで、GameUserSettings.ini が起動中に文字化けしたので、使用しない
+  )
+else
+  IMAGES=("$@")
+fi
+for IMAGE in "${IMAGES[@]}"; do
+  build "${IMAGE}"
+done
