@@ -1,9 +1,9 @@
 {
-  "itzg/minecraft-server:latest": "sha256:bf5d980328c501041270573d2a18496dfa30693604221e3039a07d8ed3b095cb",
+  "itzg/minecraft-server:latest": "sha256:7788ed80ba1b54d8604951963f45d6b9fbacc4e04b94345766b1ed3278ecac37",
   "itzg/mc-proxy:latest": "sha256:67c033079735e0d818dd054a2d265b6626cd6d1eefb5996d2eea2298afdf7656",
   "itzg/mc-backup:latest": "sha256:20ef4503faf99792bdc373817315c26284ffb1e5ea420b5bdd0b2efd5266964f",
-  "itzg/minecraft-server:java17": "sha256:47168583dc14ce30ea77bfc17cbe19484714b43a23c24c379503fc9537481d40",
+  "itzg/minecraft-server:java17": "sha256:6ffabeb7346bff475d1c920804019c9f5e34adb9b8a63e6d818e5a69880cf5c6",
   "hermsi/ark-server:latest": "null",
   "itzg/minecraft-server:java25": "sha256:10616bc19367da783ab0b5b3116961f303cea36cc2cf344f831ee6d665f8e9e8",
-  "itzg/minecraft-server:java21": "sha256:8337d74d18cbb1eaffce391ed8d62162103e916280e3e5cdc5db6379cba0eb23"
+  "itzg/minecraft-server:java21": "sha256:83a0e6953d615e604a9e505436610e89886d98a8a8f57ac449d54a5b8c83e16d"
 }
