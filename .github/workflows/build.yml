@@ -42,6 +42,9 @@ jobs:
           - name: mc-proxy:latest
             src: itzg
             artifact: mc-proxy-latest
+          - name: mc-proxy:java25
+            src: itzg
+            artifact: mc-proxy-java25
           - name: mc-backup:latest
             src: itzg
             artifact: mc-backup-latest

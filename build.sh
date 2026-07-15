@@ -15,6 +15,7 @@ if [ "$1" = "all" ]; then
     "itzg/minecraft-server:java21"
     "itzg/minecraft-server:java17"
     "itzg/mc-proxy:latest"
+    "itzg/mc-proxy:java25" # ... latest が Java 21 のままのため、新規追加
     "itzg/mc-backup:latest"
     # "hermsi/ark-server:latest" # ... TZを変更するだけで、GameUserSettings.ini が起動中に文字化けしたので、使用しない
   )
